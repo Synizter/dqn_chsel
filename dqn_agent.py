@@ -14,8 +14,8 @@ class DQNAgent:
         self.lr = 1e-3
         self.gamma = 0.95
         self.exploration_proba = 1.0
-        self.exploration_proba_decay = 0.005
-        self.batch_size = 64
+        self.exploration_proba_decay = 0.004
+        self.batch_size = 16
         
         self.memory_buffer= list()
         self.max_memory_buffer = 1500
@@ -23,7 +23,7 @@ class DQNAgent:
         self.model = Sequential([
             Flatten(),             
             Dense(units=64,activation = 'relu'),
-            Dense(units=64,activation = 'relu'),
+            Dense(units=32,activation = 'relu'),
             Dense(self.n_actions, activation = 'softmax')
         ])
         self.model.compile(loss="mse", optimizer = SGD(learning_rate = self.lr))
@@ -51,9 +51,9 @@ class DQNAgent:
             "done" :done
         })
         #write memory buffer to file as backup
-        # __w = '{}, {}, {}, {}, {}\n'.format(current_state, action, reward, next_state, done)
-        # with open('log_memory_buffer.txt', 'a+') as f:
-        #     f.write(__w)
+        __w = '{}, {}, {}, {}, {}\n'.format(current_state, action, reward, next_state, done)
+        with open('log_memory_buffer.txt', 'a+') as f:
+            f.write(__w)
 
     def resume_action_approx_training(self, model_path = 'approximator'):
         self.model = tf.keras.models.load_model(model_path)

@@ -8,7 +8,7 @@ import tensorflow as tf
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 
-MAX_CHANNELS_SELECT =  6
+MAX_CHANNELS_SELECT =  8
 
 class EEGChannelOptimze(gym.Env):
     
@@ -66,7 +66,7 @@ class EEGChannelOptimze(gym.Env):
 
         # loss, val_acc =  clf.evaluate(x_val,y_val, verbose = verbose)
 
-        y_preds = clf.predict(x_test)
+        y_preds = clf.predict(x_test, verbose = verbose)
         predicted = np.argmax(y_preds, axis=1)
         ground_truth = np.argmax(y_test, axis=1)
         
@@ -76,14 +76,15 @@ class EEGChannelOptimze(gym.Env):
         if reward > 0:
             self.reward_threshold = f1
         
-        if len(np.where(self.observation_space == 1)[0]) == MAX_CHANNELS_SELECT + 3 or self.rounds == 0 or reward < 0:
+        if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0 or reward == 0:
                 done = True
 
-        tf.keras.models.save_model(clf, 'test/')
+        # tf.keras.models.save_model(clf, 'test/')
         
         #cleanup resource and clear tf session
         # del clf, classifier_loss, classifier_optimizer, x_train, x_val, val_acc, reward
         tf.keras.backend.clear_session()
+        
 
         return self.state, reward, done, info
     
@@ -95,7 +96,7 @@ class EEGChannelOptimze(gym.Env):
         # self.state[self.dataset_info['ChMap']['Cz']] = 1
         self.state[self.dataset_info['ChMap']['C3']] = 1
         self.state[self.dataset_info['ChMap']['C4']] = 1
-        self.rounds = MAX_CHANNELS_SELECT
+        self.rounds = 19
         self.reward_threshold = self.initial_acc_thresh
         return self.state
 
@@ -132,7 +133,7 @@ if __name__ == "__main__":
         # from gym.utils.env_checker import check_env
         # # check_env(env)
         
-        x, r, d, _ = env.step(dataset_info['ChMap']['C3'], verbose = True)
+        x, r, d, _ = env.step(dataset_info['ChMap']['Cz'], verbose = True)
         print(env.reward_threshold, r, d, env.state)
 
 
