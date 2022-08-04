@@ -70,11 +70,11 @@ class EEGChannelOptimze(gym.Env):
         predicted = np.argmax(y_preds, axis=1)
         ground_truth = np.argmax(y_test, axis=1)
         
-        f1 = f1_score(ground_truth, predicted, average = 'macro')
-        reward = f1 - self.reward_threshold
+        acc = accuracy_score(ground_truth, predicted)
+        reward = acc - self.reward_threshold
         #if newly added channel yield higher accuracy ,change reward threshhold and have reward +1
         if reward > 0:
-            self.reward_threshold = f1
+            self.reward_threshold = acc
         
         if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0:
                 done = True
