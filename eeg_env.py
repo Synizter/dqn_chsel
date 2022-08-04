@@ -76,7 +76,7 @@ class EEGChannelOptimze(gym.Env):
         if reward > 0:
             self.reward_threshold = f1
         
-        if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0 or reward == 0:
+        if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0:
                 done = True
 
         # tf.keras.models.save_model(clf, 'test/')
