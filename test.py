@@ -23,25 +23,24 @@ dataset_channel_map = {'F4': 0, 'C4': 1, 'Pa': 2, 'Cz': 3, 'F3': 4, 'C3': 5, 'P3
 
 
 if __name__ == "__main__":
-    X, y = capilab_dataset2.get(fname)
+    fname = ['Datasets/Lai_JulyData.mat', 'Datasets/Takahashi_JulyData.mat', 'Datasets/Suguro_JulyData.mat']
+    dataset_channel_map = {'F4': 0, 'C4': 1, 'P4': 2, 'Cz': 3, 'F3': 4, 'C3': 5, 'P3': 6, 'F7': 7, 'T3': 8, 'T5': 9, 
+                           'Fp1': 10, 'Fp2': 11, 'T4': 12, 'F8': 13, 'Fz': 14, 'Pz': 15, 'T6': 16, 'O2': 17, 'O1': 18}
+    
+    Xx, yy = capilab_dataset2.get(fname)
     try:
-        _x, x_test,  _y, y_test = train_test_split(X, y, test_size = .05, stratify = y, random_state = 420)
-        x_train, x_val, y_train, y_val = train_test_split(_x, _y, test_size = .2, stratify = _y, random_state = 420)
+        X, x_test,  y, y_test = train_test_split(Xx, yy, test_size = .1, stratify = yy, random_state = 420)
         dataset_info = {
-            "RawX":X,
-            "RawY":y,
-            "TrainX":x_train,
-            "TrainY":y_train,
-            "ValX":x_val,
-            "ValY":y_val,
-            "TestX":x_test,
-            "TestY":y_test,
-            "OutputClass":y.shape[1],
-            "Shape":(X.shape[1], X.shape[2]),
-            "NbrData":X.shape[0],
-            "ChMap":dataset_channel_map
+            "X":X,
+            "y":y,
+            "x_test":x_test,
+            "y_test":y_test,
+            "nbr_class":y.shape[1],
+            "data_shape":(X.shape[1], X.shape[2]),
+            "nbr_data":X.shape[0],
+            "ch_map":dataset_channel_map
         }
-        env = EEGChannelOptimze(dataset_info, model_set.Custom1DCNN, BASELINE_F1)
+        env = EEGChannelOptimze(dataset_info, model_set.Custom1DCNN, 0.25)
     except Exception as e:
         print(e)
 
@@ -74,8 +73,7 @@ if __name__ == "__main__":
                 agent.store_episode(current_state, action, reward, next_state, done)
                 if done:
                     agent.update_exploration_probability()
-                    episode_reward = np.array(episode_reward)
-
+                
                     # episode_chs.append(env.observation_space)
                     d = '{},{},{},{},{},{},{}\n'.format(e, 
                                                         BASELINE_F1 + r, 
@@ -83,13 +81,14 @@ if __name__ == "__main__":
                                                         agent.exploration_proba, 
                                                         env.reward_threshold, 
                                                         episode_reward,
-                                                        np.mean(episode_reward))
+                                                        np.mean(np.array(episode_reward)))
+                    
                     with open('log_agent_reward.txt', 'a+') as f:
                         f.write(d)
                     break
                 current_state = next_state
                 episode_step += 1
-
+            break
             if total_steps >= batch_size:
                 loss = agent.train(batch_size=batch_size)
                 # episode_loss.append(loss)
