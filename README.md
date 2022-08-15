@@ -10,6 +10,7 @@
 ### Todo
 - [ ] ActorCritic
 - [ ] Another classifier
+- [ ] incorrect Loss calculation
 
 ### Examine
 - [ ] Another reward type

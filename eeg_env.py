@@ -4,6 +4,11 @@ import capilab_dataset2
 import model_set
 import tensorflow as tf
 
+#shut up
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 #matrix eval
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
@@ -29,9 +34,10 @@ class EEGChannelOptimze(gym.Env):
         recall = []
         prec = []
         acc = []
-        
+        print("\nSTATE {}".format(self.state))
         kfold = StratifiedKFold(n_splits = k, shuffle = True, random_state = 420)
-        for train, val in kfold.split(X, np.argmax(y, axis = 1)):
+        for i , (train, val) in enumerate(kfold.split(X, np.argmax(y, axis = 1))):
+            print("Training on fold {}/{}".format(i+1, k))
             classifier_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-3)
             classifier_loss = tf.keras.losses.CategoricalCrossentropy()
             clf = self.classifier(inp_shape=self.dataset_info['data_shape'], output_classes=self.dataset_info['nbr_class'])
@@ -52,10 +58,12 @@ class EEGChannelOptimze(gym.Env):
             f1.append(f1_score(ground_truth, predicted, average = 'macro'))
             prec.append(precision_score(ground_truth, predicted, average = 'macro'))
             recall.append(recall_score(ground_truth, predicted, average = 'macro'))
-        
+            print("F1 {:.5f} | PRECISION {:.5f} | RECALL {:.5f} | ACC {:.5f}".format(f1[-1], prec[-1], recall[-1], acc[-1]))
+
             tf.keras.backend.clear_session()
-        
+            
         # print(np.array(acc).mean(), np.array(recall).mean(), np.array(prec).mean(),np.array(f1).mean())
+        print("F1-score mean of {:.5f}-fold".format(np.array(f1).mean()))
         return np.array(acc).mean(), np.array(recall).mean(), np.array(prec).mean(),np.array(f1).mean()
         
             
@@ -78,9 +86,9 @@ class EEGChannelOptimze(gym.Env):
         reward = f1_m - self.reward_threshold
         #if newly added channel yield higher accuracy ,change reward threshhold and have reward +1
         if reward > 0:
-            self.reward_threshold = acc
+            self.reward_threshold = f1_m
         
-        if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0 or reward < 0:
+        if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0:
                 done = True
 
         return self.state, reward, done, info
@@ -93,7 +101,7 @@ class EEGChannelOptimze(gym.Env):
         # self.state[self.dataset_info['ChMap']['Cz']] = 1
         self.state[self.dataset_info['ch_map']['C3']] = 1
         self.state[self.dataset_info['ch_map']['C4']] = 1
-        self.rounds = 19
+        self.rounds = 15
         self.reward_threshold = self.initial_acc_thresh
         return self.state
 
@@ -128,14 +136,16 @@ if __name__ == "__main__":
         # from gym.utils.env_checker import check_env
         # # check_env(env)
         
-        x, r, d, _ = env.step(dataset_info['ch_map']['Cz'])
-        print(env.reward_threshold, r, d, env.state)
+        print(env.state)
+                
+        # x, r, d, _ = env.step(dataset_info['ch_map']['Cz'])
+        # print(env.reward_threshold, r, d, env.state)
 
-        x, r, d, _ = env.step(dataset_info['ch_map']['P3'])
-        print(env.reward_threshold, r, d, env.state)
+        # x, r, d, _ = env.step(dataset_info['ch_map']['P3'])
+        # print(env.reward_threshold, r, d, env.state)
         
-        x, r, d, _ = env.step(dataset_info['ch_map']['P4'])
-        print(env.reward_threshold, r, d, env.state)
+        # x, r, d, _ = env.step(dataset_info['ch_map']['P4'])
+        # print(env.reward_threshold, r, d, env.state)
 
 
     except Exception as e:

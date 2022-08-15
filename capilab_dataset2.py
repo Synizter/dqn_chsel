@@ -48,7 +48,7 @@ def get(fname):
 
 
 if __name__ == "__main__":
-    fname = ['Datasets\Lai_JulyData.mat', 'Datasets\Lai_JulyData.mat', 'Datasets\Suguro_JulyData.mat', 'Datasets\Takahashi_JulyData.mat']
+    fname = ['Datasets/Lai_JulyData.mat', 'Datasets/Suguro_JulyData.mat', 'Datasets/Takahashi_JulyData.mat']
     X, y = get(fname)
     print(X.shape, y.shape)
     

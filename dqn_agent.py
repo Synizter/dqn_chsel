@@ -10,12 +10,12 @@ from matplotlib import pyplot as plt
 
 class DQNAgent:
     def __init__(self, state_size, action_size):
-        self.n_actions = action_size
-        self.lr = 1e-3
-        self.gamma = 0.95
-        self.exploration_proba = 1.0
-        self.exploration_proba_decay = 0.004
-        self.batch_size = 16
+        self.n_actions = action_size #nbr of action
+        self.lr = 1e-3 #Learning rate for model
+        self.gamma = 0.95 #discount factor
+        self.exploration_proba = 1.0 #Coolant factor
+        self.exploration_proba_decay = 0.005 #Decay Rate
+        self.batch_size = 32 #barch size for memory sampling
         
         self.memory_buffer= list()
         self.max_memory_buffer = 1500
@@ -63,15 +63,44 @@ class DQNAgent:
         batch_sample = self.memory_buffer[0:self.batch_size]
         for experience in batch_sample:
             q_current_state = self.model.predict(experience["current_state"], verbose = False)
-            # We compute the Q-target using Bellman optimality equation
+            #predict Q (reward) of current state eg 
+            #input = [[1,1,0,0,0,1,1,0,1, 0, 0, 1, 0 ,1, 1, 0, 0, 0, 1]] | output = [[0.0652849  0.02962924 0.04938378 0.04408209 0.07093532 
+            #                                                                        0.047186980.04342251 0.05206998 0.03284323 0.06921446 0.0743172  0.06933404
+            #                                                                        0.06899458 0.03939189 0.06939222 0.03298171 0.03278639 0.0538005 0.05494894]]
             q_target = experience["reward"]
             if not experience["done"]:
-                q_predict = self.model.predict(experience["next_state"], verbose = False)
-                q_predict = tf.reduce_sum(q_predict, axis = 0)
-                q_target = q_target + self.gamma*np.max(q_predict)
+                q_predict = self.model.predict(experience["next_state"], verbose = False) #predict q of next state
+                q_predict = tf.reduce_sum(q_predict, axis = 0) #flatten output
+                q_target = q_target + self.gamma*np.max(q_predict) #apply discount factor
             
-            q_current_state[0][experience["action"]] = q_target
+            q_current_state[0][experience["action"]] = q_target #set a q value of an action (predicted  by network) to q target
+            #[0] because output of network is array of array
+        
             # train the model
             hist = self.model.fit(experience["current_state"], q_current_state, verbose=False)
         self.model.save('approximator')
         return hist.history['loss']
+
+if __name__ == "__main__":
+
+    t = {"current_state":[[1,1,0,0,0,1,1,0,1, 0, 0, 1, 0 ,1, 1, 0, 0, 0, 1]],
+         "action":11,
+         "reward":-0.07506811324897217,
+         "next_state":[[1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1]],
+         "done":False}
+    agent = DQNAgent(19, 19)
+    q_current_state = agent.model.predict(t['current_state'])
+    q_target = t['reward']
+    print(q_target)
+    # print(q_current_state, q_current_state[0])
+    if not t['done']:
+        q_predict = agent.model.predict(t["next_state"], verbose = False)
+        print(q_predict)
+        q_predict = tf.reduce_sum(q_predict, axis = 0)
+        print(q_predict)
+        q_target = q_target + agent.gamma*np.max(q_predict)
+        print(q_target)
+        
+        
+        
+
