@@ -15,6 +15,7 @@ from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_sc
 from sklearn.model_selection import StratifiedKFold
 
 MAX_CHANNELS_SELECT =  8
+DEBUG = True
 
 class EEGChannelOptimze(gym.Env):
     
@@ -138,14 +139,14 @@ if __name__ == "__main__":
         
         print(env.state)
                 
-        # x, r, d, _ = env.step(dataset_info['ch_map']['Cz'])
-        # print(env.reward_threshold, r, d, env.state)
+        x, r, d, _ = env.step(dataset_info['ch_map']['Cz'])
+        print(env.reward_threshold, r, d, env.state)
 
-        # x, r, d, _ = env.step(dataset_info['ch_map']['P3'])
-        # print(env.reward_threshold, r, d, env.state)
+        x, r, d, _ = env.step(dataset_info['ch_map']['P3'])
+        print(env.reward_threshold, r, d, env.state)
         
-        # x, r, d, _ = env.step(dataset_info['ch_map']['P4'])
-        # print(env.reward_threshold, r, d, env.state)
+        x, r, d, _ = env.step(dataset_info['ch_map']['P4'])
+        print(env.reward_threshold, r, d, env.state)
 
 
     except Exception as e:
