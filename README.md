@@ -10,7 +10,6 @@
 ### Todo
 - [ ] ActorCritic
 - [ ] Another classifier
-- [ ] incorrect Loss calculation
 
 ### Examine
 - [ ] Another reward type
@@ -19,3 +18,4 @@
 - train data = fit model
 - validation = update weigth
 - test = test
+

@@ -1,13 +1,15 @@
 from a2c_agent import ActorCritic
 from eeg_env import EEGChannelOptimze
 import numpy as np
+import tensorflow as tf
+import numpy as np
+import model_set
+import capilab_dataset2
 
 
 fname = ['Datasets/Lai_JulyData.mat', 'Datasets/Takahashi_JulyData.mat']
 dataset_channel_map = {'F4': 0, 'C4': 1, 'Pa': 2, 'Cz': 3, 'F3': 4, 'C3': 5, 'P3': 6, 'F7': 7, 'T3': 8, 'T5': 9, 
                            'Fp1': 10, 'Fp2': 11, 'T4': 12, 'F8': 13, 'Fz': 14, 'Pz': 15, 'T6': 16, 'O2': 17, 'O1': 18}
-
-
 
 
 def get_expected_return(

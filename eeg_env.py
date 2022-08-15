@@ -14,8 +14,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 from sklearn.model_selection import StratifiedKFold
 
-MAX_CHANNELS_SELECT =  8
-DEBUG = True
+MAX_CHANNELS_SELECT =  6
+DEBUG = False
 
 class EEGChannelOptimze(gym.Env):
     
@@ -35,36 +35,38 @@ class EEGChannelOptimze(gym.Env):
         recall = []
         prec = []
         acc = []
-        print("\nSTATE {}".format(self.state))
+        # print("\nSTATE {}".format(self.state))
         kfold = StratifiedKFold(n_splits = k, shuffle = True, random_state = 420)
-        for i , (train, val) in enumerate(kfold.split(X, np.argmax(y, axis = 1))):
-            print("Training on fold {}/{}".format(i+1, k))
-            classifier_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-3)
-            classifier_loss = tf.keras.losses.CategoricalCrossentropy()
-            clf = self.classifier(inp_shape=self.dataset_info['data_shape'], output_classes=self.dataset_info['nbr_class'])
-            clf.compile(optimizer = classifier_optimizer, loss= classifier_loss , metrics=['accuracy'])
-            es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=9, restore_best_weights=True, verbose = False) 
-            
-            clf.fit(X[train], y[train],
-                    batch_size=32, 
-                    epochs = 50, 
-                    verbose = verbose, 
-                    validation_data = (X[val],y[val]),
-                    callbacks = [es])
-            y_preds = clf.predict(x_test, verbose = verbose)
-            predicted = np.argmax(y_preds, axis=1)
-            ground_truth = np.argmax(y_test, axis=1)
-            
-            acc.append(accuracy_score(ground_truth, predicted))
-            f1.append(f1_score(ground_truth, predicted, average = 'macro'))
-            prec.append(precision_score(ground_truth, predicted, average = 'macro'))
-            recall.append(recall_score(ground_truth, predicted, average = 'macro'))
-            print("F1 {:.5f} | PRECISION {:.5f} | RECALL {:.5f} | ACC {:.5f}".format(f1[-1], prec[-1], recall[-1], acc[-1]))
+        if not DEBUG:
+            for i , (train, val) in enumerate(kfold.split(X, np.argmax(y, axis = 1))):
+                # print("Training on fold {}/{}".format(i+1, k))
+                classifier_optimizer = tf.keras.optimizers.Adam(learning_rate = 1e-3)
+                classifier_loss = tf.keras.losses.CategoricalCrossentropy()
+                clf = self.classifier(inp_shape=self.dataset_info['data_shape'], output_classes=self.dataset_info['nbr_class'])
+                clf.compile(optimizer = classifier_optimizer, loss= classifier_loss , metrics=['accuracy'])
+                es = tf.keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.001, patience=9, restore_best_weights=True, verbose = False) 
+                
+                clf.fit(X[train], y[train],
+                        batch_size=32, 
+                        epochs = 50, 
+                        verbose = verbose, 
+                        validation_data = (X[val],y[val]),
+                        callbacks = [es])
+                y_preds = clf.predict(x_test, verbose = verbose)
+                predicted = np.argmax(y_preds, axis=1)
+                ground_truth = np.argmax(y_test, axis=1)
+                
+                acc.append(accuracy_score(ground_truth, predicted))
+                f1.append(f1_score(ground_truth, predicted, average = 'macro'))
+                prec.append(precision_score(ground_truth, predicted, average = 'macro'))
+                recall.append(recall_score(ground_truth, predicted, average = 'macro'))
+                # print("F1 {:.5f} | PRECISION {:.5f} | RECALL {:.5f} | ACC {:.5f}".format(f1[-1], prec[-1], recall[-1], acc[-1]))
 
-            tf.keras.backend.clear_session()
-            
-        # print(np.array(acc).mean(), np.array(recall).mean(), np.array(prec).mean(),np.array(f1).mean())
-        print("F1-score mean of {:.5f}-fold".format(np.array(f1).mean()))
+                tf.keras.backend.clear_session()
+                
+            # print(np.array(acc).mean(), np.array(recall).mean(), np.array(prec).mean(),np.array(f1).mean())
+        else:
+            return 1.0, 1.0, 1.0, 1.0
         return np.array(acc).mean(), np.array(recall).mean(), np.array(prec).mean(),np.array(f1).mean()
         
             
@@ -84,10 +86,11 @@ class EEGChannelOptimze(gym.Env):
         y_test = self.dataset_info['y_test']
         
         acc_m, rc_m, psc_m, f1_m = self.fold_cv_step(X,y, x_test, y_test, verbose=verbose)
-        reward = f1_m - self.reward_threshold
+        eval_crit = acc_m
+        reward = eval_crit - self.reward_threshold
         #if newly added channel yield higher accuracy ,change reward threshhold and have reward +1
         if reward > 0:
-            self.reward_threshold = f1_m
+            self.reward_threshold = eval_crit
         
         if len(np.where(self.state == 1)[0]) == MAX_CHANNELS_SELECT + 2 or self.rounds == 0:
                 done = True
@@ -102,7 +105,8 @@ class EEGChannelOptimze(gym.Env):
         # self.state[self.dataset_info['ChMap']['Cz']] = 1
         self.state[self.dataset_info['ch_map']['C3']] = 1
         self.state[self.dataset_info['ch_map']['C4']] = 1
-        self.rounds = 15
+
+        self.rounds = 6
         self.reward_threshold = self.initial_acc_thresh
         return self.state
 
