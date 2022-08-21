@@ -131,47 +131,51 @@ def train_step(initial_state: tf.Tensor, model: tf.keras.Model, gamma: float, ma
 
 # init --------------------------------------------------------------------------------
 
-fname = ['Datasets/Lai_JulyData.mat',  'Datasets/Sugiyama_JulyData.mat']
-dataset_channel_map = {'F4': 0, 'C4': 1, 'Pa': 2, 'Cz': 3, 'F3': 4, 'C3': 5, 'P3': 6, 'F7': 7, 'T3': 8, 'T5': 9, 
-                           'Fp1': 10, 'Fp2': 11, 'T4': 12, 'F8': 13, 'Fz': 14, 'Pz': 15, 'T6': 16, 'O2': 17, 'O1': 18}
+# fname = ['Datasets/Lai_JulyData.mat',  'Datasets/Sugiyama_JulyData.mat']
+# dataset_channel_map = {'F4': 0, 'C4': 1, 'Pa': 2, 'Cz': 3, 'F3': 4, 'C3': 5, 'P3': 6, 'F7': 7, 'T3': 8, 'T5': 9, 
+#                            'Fp1': 10, 'Fp2': 11, 'T4': 12, 'F8': 13, 'Fz': 14, 'Pz': 15, 'T6': 16, 'O2': 17, 'O1': 18}
 
-Xx, yy = capilab_dataset2.get(fname)
+# Xx, yy = capilab_dataset2.get(fname)
 
-dataset_info = None
-try:
-        # Restrict TensorFlow to only use the first GPU
-    gpus = tf.config.list_physical_devices('GPU')
-    tf.config.set_logical_device_configuration(
-        gpus[0],
-        [tf.config.LogicalDeviceConfiguration(memory_limit=4096)])
-    logical_gpus = tf.config.list_logical_devices('GPU')
-    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+# dataset_info = None
+# try:
+#         # Restrict TensorFlow to only use the first GPU
+#     gpus = tf.config.list_physical_devices('GPU')
+#     tf.config.set_logical_device_configuration(
+#         gpus[0],
+#         [tf.config.LogicalDeviceConfiguration(memory_limit=4096)])
+#     logical_gpus = tf.config.list_logical_devices('GPU')
+#     print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
 
-    X, x_test,  y, y_test = train_test_split(Xx, yy, test_size = .1, stratify = yy, random_state = 420)
-    dataset_info = {
-        "X":X,
-        "y":y,
-        "x_test":x_test,
-        "y_test":y_test,
-        "nbr_class":y.shape[1],
-        "data_shape":(X.shape[1], X.shape[2]),
-        "nbr_data":X.shape[0],
-        "ch_map":dataset_channel_map
-    }
-except Exception as e:
-    print(e)
+#     X, x_test,  y, y_test = train_test_split(Xx, yy, test_size = .1, stratify = yy, random_state = 420)
+#     dataset_info = {
+#         "X":X,
+#         "y":y,
+#         "x_test":x_test,
+#         "y_test":y_test,
+#         "nbr_class":y.shape[1],
+#         "data_shape":(X.shape[1], X.shape[2]),
+#         "nbr_data":X.shape[0],
+#         "ch_map":dataset_channel_map
+#     }
+# except Exception as e:
+#     print(e)
+# if dataset_info is None:
+#     print("Error")
+# else:
+#     print("Creating an evnironment...")
+#     env = EEGChannelOptimze(dataset_info, model_set.Custom1DCNN, 0.25)
+#     print("Done")
+# reward_threshold = 0.75
 
+#TEST ENV
+import test_unit 
+env = test_unit.TEST_ENV()
+reward_threshold = np.sum(env.get_weitght()) * 90 / 100 
 
-if dataset_info is None:
-    print("Error")
-else:
-    print("Creating an evnironment...")
-    env = EEGChannelOptimze(dataset_info, model_set.Custom1DCNN, 0.25)
-    print("Done")
-    
 import collections
 
-seed = 42
+seed = 420
 env.seed(seed)
 tf.random.set_seed(seed)
 np.random.seed(seed)
@@ -191,7 +195,7 @@ min_episodes_criterion = 15
 max_episodes = 300
 max_steps_per_episode = 6
 
-reward_threshold = 0.75
+
 running_reward = 0
 
 # Discount factor for future rewards

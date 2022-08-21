@@ -98,17 +98,14 @@ class EEGChannelOptimze(gym.Env):
         return self.state, reward, done, info
     
     def reset(self):
-        # print("Reset env")
-        # self.observation_space = np.zeros((19,))
-        self.state = np.zeros((len(self.dataset_info['ch_map'])), dtype=int)
-        #add reliable chanenl
-        # self.state[self.dataset_info['ChMap']['Cz']] = 1
+        self.state = np.zeros((len(self.dataset_info['ch_map'])), dtype=np.int32)
         self.state[self.dataset_info['ch_map']['C3']] = 1
         self.state[self.dataset_info['ch_map']['C4']] = 1
 
         self.rounds = 6
         self.reward_threshold = self.initial_acc_thresh
         return self.state
+
 
 
 if __name__ == "__main__":
@@ -135,6 +132,7 @@ if __name__ == "__main__":
             "nbr_data":X.shape[0],
             "ch_map":dataset_channel_map
         }
+        DEBUG = True
         env = EEGChannelOptimze(dataset_info, model_set.Custom1DCNN, 0.35)
         # print(env.action_space.n, env.observation_space.n)
         #check compatible
@@ -159,8 +157,3 @@ if __name__ == "__main__":
         # print(exc_type, fname, exc_tb.tb_lineno)
         print(traceback.format_exc())
 
-
-
-
-
-    
