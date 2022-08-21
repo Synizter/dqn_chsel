@@ -181,14 +181,21 @@ eps = np.finfo(np.float32).eps.item()
 #Actor Critic Model
 num_actions = env.action_space.n  # 2
 num_hidden_units = 128
-model = ActorCritic(num_actions, num_hidden_units)
+
+if os.path.isdir('a2c'):
+    print("loading checkpoint")
+    model = tf.keras.models.load_model('a2c')
+else:
+    print("Create new model")
+    model = ActorCritic(num_actions, num_hidden_units)    
+
 huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
 
 
 #Episode Parameter
 min_episodes_criterion = 15
-max_episodes = 300
+max_episodes = 900
 max_steps_per_episode = 6
 
 reward_threshold = 0.75

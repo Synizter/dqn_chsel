@@ -4,7 +4,7 @@ import silence_tensorflow #うるさいしないために
 silence_tensorflow.silence_tensorflow()
 
 import tensorflow as tf
-
+import os
 
 class ActorCritic(tf.keras.Model):
     """Combined actor-critic network."""
@@ -23,7 +23,15 @@ class ActorCritic(tf.keras.Model):
         return self.actor(x), self.critic(x)
 
 
+if __name__ == "__main__":
 
+    
+    if os.path.isdir('a2c'):
+        print("loading checkpoint")
+        agent = tf.keras.models.load_model('a2c')
+    else:
+        print("Create new model")
+        agent = ActorCritic(19, 128)     
         
     
 
